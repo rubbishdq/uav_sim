@@ -65,7 +65,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.0500000007
       Shape: Axes
-      Topic: /core_controller/uav_target_pose/global
+      Topic: /core_controller/uav_traj_pose
       Unreliable: false
       Value: true
     - Alpha: 1

@@ -77,7 +77,7 @@ class CoreControllerNode:
         self.pub_interval_ = rospy.Duration(0.02)
         self.decision_interval_ = rospy.Duration(0.05)
 
-        self.uav_target_pose_global_pub_ = rospy.Publisher('/core_controller/uav_target_pose/global', PoseStamped, queue_size=100)
+        self.uav_target_pose_global_pub_ = rospy.Publisher('/core_controller/uav_traj_pose', PoseStamped, queue_size=100)
         self.uav_target_pose_local_pub_ = rospy.Publisher('/mavros/setpoint_position/local', PoseStamped, queue_size=100)
         self.gazeboposePub_ = rospy.Publisher('/core_controller/uav_pose_gazebo', PoseStamped, queue_size=100)
 

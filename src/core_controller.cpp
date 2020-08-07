@@ -26,7 +26,7 @@ CoreControllerNode::CoreControllerNode()
     pub_interval_ = ros::Duration(0.02);
     decision_interval_ = ros::Duration(0.05);
 
-    uav_target_pose_global_pub_ = n_.advertise<geometry_msgs::PoseStamped>("/core_controller/uav_target_pose/global", 100);
+    uav_target_pose_global_pub_ = n_.advertise<geometry_msgs::PoseStamped>("/core_controller/uav_traj_pose", 100);
     uav_target_pose_local_pub_ = n_.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 100);
     gazeboposePub_ = n_.advertise<geometry_msgs::PoseStamped>("/core_controller/uav_pose_gazebo", 100);
 
