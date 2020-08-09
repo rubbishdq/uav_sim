@@ -83,7 +83,7 @@ class CoreControllerNode:
 
         self.mavstateSub_ = rospy.Subscriber('/mavros/state', State, self.mavstateCallback)
         self.gazeboposeSub_ = rospy.Subscriber('/gazebo/model_states', ModelStates, self.gazeboposeCallback)
-        self.targetposeSub_ = rospy.Subscriber('/target_location/camera', PointWithState, self.targetposeCallback)
+        self.targetposeSub_ = rospy.Subscriber('/target_location/location', PointWithState, self.targetposeCallback)
 
         self.arming_client_ = rospy.ServiceProxy('/mavros/cmd/arming', CommandBool)
         self.land_client_ = rospy.ServiceProxy('/mavros/cmd/land', CommandBool)

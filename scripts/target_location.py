@@ -32,7 +32,7 @@ class TargetLocationNode:
         rospy.init_node('target_location_node', anonymous=True)
         self.orgFrame_ = None
         self.bridge_ = CvBridge()
-        self.location_pub_ = rospy.Publisher("/target_location/camera", PointWithState, queue_size=10)
+        self.location_pub_ = rospy.Publisher("/target_location/location", PointWithState, queue_size=10)
         self.image_result_pub_ = rospy.Publisher("/target_location/image_result", Image, queue_size=10)
         self.image_sub_ = rospy.Subscriber("/iris/usb_cam/image_raw", Image, self.imagesubCallback)
         self.location_timer_ = rospy.Timer(rospy.Duration(0.05), self.locationloopCallback)

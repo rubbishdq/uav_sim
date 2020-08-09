@@ -32,7 +32,7 @@ CoreControllerNode::CoreControllerNode()
 
     mavstateSub_ = n_.subscribe("/mavros/state", 1, &CoreControllerNode::mavstateCallback, this, ros::TransportHints().tcpNoDelay());  
     gazeboposeSub_ = n_.subscribe("/gazebo/model_states", 1, &CoreControllerNode::gazeboposeCallback, this, ros::TransportHints().tcpNoDelay());  
-    targetposeSub_ = n_.subscribe("/target_location/camera", 1, &CoreControllerNode::targetposeCallback, this, ros::TransportHints().tcpNoDelay());
+    targetposeSub_ = n_.subscribe("/target_location/location", 1, &CoreControllerNode::targetposeCallback, this, ros::TransportHints().tcpNoDelay());
 
     arming_client_ = n_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
     land_client_ = n_.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/land");
