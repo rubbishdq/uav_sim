@@ -11,21 +11,6 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 
 
-#找出面积最大的轮廓
-#参数为要比较的轮廓的列表
-def getAreaMaxContour(contours) :
-     contour_area_temp = 0
-     contour_area_max = 0
-     area_max_contour = None;
-     for c in contours : #遍历所有轮廓
-         contour_area_temp = math.fabs(cv2.contourArea(c)) #计算轮廓面积
-         if contour_area_temp > contour_area_max :
-             contour_area_max = contour_area_temp
-             area_max_contour = c
-
-     return area_max_contour, contour_area_max  #返回最大的轮廓
-
-
 class TargetLocationNode:
     
     def __init__(self):
@@ -85,14 +70,24 @@ class TargetLocationNode:
             opened = cv2.morphologyEx(frame, cv2.MORPH_OPEN, np.ones((3,3),np.uint8))  #开运算
             closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, np.ones((3,3),np.uint8))  #闭运算
             (image, contours, hierarchy) = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)  #找出轮廓
-            areaMaxContour, area_max = getAreaMaxContour(contours)  #找出最大轮廓
-            if areaMaxContour is not None:
-                if area_max > 50:
+
+            #在contours中找出最大轮廓
+            contour_area_temp = 0
+            contour_area_max = 0
+            area_max_contour = None
+            for c in contours : #遍历所有轮廓
+                contour_area_temp = math.fabs(cv2.contourArea(c)) #计算轮廓面积
+                if contour_area_temp > contour_area_max :
+                    contour_area_max = contour_area_temp
+                    area_max_contour = c
+ 
+            if area_max_contour is not None:
+                if contour_area_max > 50:
                     isTargetFound = True
 
             if isTargetFound:
                 target = 'Red'
-                ((centerX, centerY), rad) = cv2.minEnclosingCircle(areaMaxContour)  #获取最小外接圆
+                ((centerX, centerY), rad) = cv2.minEnclosingCircle(area_max_contour)  #获取最小外接圆
                 cv2.circle(orgFrame_copy, (int(centerX), int(centerY)), int(rad), (0, 255, 0), 2)#画出圆心   
             else:
                 target = 'None'
