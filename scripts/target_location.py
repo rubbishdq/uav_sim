@@ -24,19 +24,23 @@ class TargetLocationNode:
 
         #以下变量仅用于本场景中的目标（红色小球）识别与定位
         self.color_range_ = [(0,43,36), (6, 255, 255)]
-        #相机内参
-        self.f_ = rospy.get_param('/target_location/focal_length')
-        self.r_ = rospy.get_param('/target_location/target_radius')  #目标小球的真实半径（米）
         
         self.location_queue_ = []
         self.queue_msize = 4  #location_queue_的最大大小
         self.max_dist_in_queue_ = 0.2  #真正检测到目标时，location_queue_中任一点距离队列中所有点重心的距离不得超过该阈值
+
+        self.initFromYaml()
 
         try:
             rospy.spin()
         except KeyboardInterrupt:
             pass
         cv2.destroyAllWindows()
+
+
+    def initFromYaml(self):
+        self.f_ = rospy.get_param('/target_location/focal_length')  #相机内参
+        self.r_ = rospy.get_param('/target_location/target_radius')  #目标小球的真实半径（米）
 
 
     def imagesubCallback(self, data):
