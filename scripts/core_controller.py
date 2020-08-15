@@ -33,7 +33,7 @@ class CoreControllerNode:
         self.yaw_local_ = collections.deque()  #角度制
 
         #读取yaml文件中事先设定的参数
-        self.initFromYaml();
+        self.initFromYaml()
 
         #初始化各PoseStamped消息及其header(用于rviz可视化)
         self.uav_target_pose_global_ = PoseStamped()
@@ -93,9 +93,9 @@ class CoreControllerNode:
         self.publishloop_timer_ = rospy.Timer(self.pub_interval_, self.publishloopCallback)
         self.decisionloop_timer_ = rospy.Timer(self.decision_interval_, self.decisionloopCallback)
 
-        rate = rospy.Rate(20);
+        rate = rospy.Rate(20)
         for i in range(10):
-            self.uav_target_pose_local_pub_.publish(self.uav_target_pose_local_);
+            self.uav_target_pose_local_pub_.publish(self.uav_target_pose_local_)
             rate.sleep()
 
         try:
@@ -161,7 +161,7 @@ class CoreControllerNode:
         v = self.traj_global_.popleft()
         yaw = self.yaw_global_.popleft()
         (x, y, z, w) = (R.from_euler('zyx', [yaw, 0, 0], degrees = True)).as_quat()
-        self.uav_target_pose_global_.header.stamp = rospy.Time.now();
+        self.uav_target_pose_global_.header.stamp = rospy.Time.now()
         self.uav_target_pose_global_.pose.position.x = v[0]
         self.uav_target_pose_global_.pose.position.y = v[1]
         self.uav_target_pose_global_.pose.position.z = v[2]
@@ -173,7 +173,7 @@ class CoreControllerNode:
         v = self.traj_local_.popleft()
         yaw = self.yaw_local_.popleft()
         (x, y, z, w) = (R.from_euler('zyx', [yaw, 0, 0], degrees = True)).as_quat()
-        self.uav_target_pose_local_.header.stamp = rospy.Time.now();
+        self.uav_target_pose_local_.header.stamp = rospy.Time.now()
         self.uav_target_pose_local_.pose.position.x = v[0]
         self.uav_target_pose_local_.pose.position.y = v[1]
         self.uav_target_pose_local_.pose.position.z = v[2]
@@ -185,8 +185,8 @@ class CoreControllerNode:
 
     def globalTrajPushFront(self, pos, yaw):
         #global
-        self.traj_global_.appendleft(pos);
-        self.yaw_global_.appendleft(yaw);
+        self.traj_global_.appendleft(pos)
+        self.yaw_global_.appendleft(yaw)
         #local
         if is_traj_local_init_:
             self.traj_local_.appendleft(np.matmul(self.R_init_.inv().as_dcm(), pos-self.t_init_))
@@ -195,8 +195,8 @@ class CoreControllerNode:
 
     def localTrajPushFront(self, pos, yaw):
         #global
-        self.traj_global_.appendleft(np.matmul(self.R_init_.as_dcm(), pos) + self.t_init_);
-        self.yaw_global_.appendleft(self.yaw_init_+yaw-360 if (self.yaw_init_+yaw > 360) else self.yaw_init_+yaw);
+        self.traj_global_.appendleft(np.matmul(self.R_init_.as_dcm(), pos) + self.t_init_)
+        self.yaw_global_.appendleft(self.yaw_init_+yaw-360 if (self.yaw_init_+yaw > 360) else self.yaw_init_+yaw)
         #local
         if is_traj_local_init_:
             self.traj_local_.appendleft(pos)
@@ -205,8 +205,8 @@ class CoreControllerNode:
 
     def globalTrajPushBack(self, pos, yaw):
         #global
-        self.traj_global_.append(pos);
-        self.yaw_global_.append(yaw);
+        self.traj_global_.append(pos)
+        self.yaw_global_.append(yaw)
         #local
         if is_traj_local_init_:
             self.traj_local_.append(np.matmul(self.R_init_.inv().as_dcm(), pos-self.t_init_))
@@ -215,8 +215,8 @@ class CoreControllerNode:
 
     def localTrajPushBack(self, pos, yaw):
         #global
-        self.traj_global_.append(np.matmul(self.R_init_.as_dcm(), pos) + self.t_init_);
-        self.yaw_global_.append(self.yaw_init_+yaw-360 if (self.yaw_init_+yaw > 360) else self.yaw_init_+yaw);
+        self.traj_global_.append(np.matmul(self.R_init_.as_dcm(), pos) + self.t_init_)
+        self.yaw_global_.append(self.yaw_init_+yaw-360 if (self.yaw_init_+yaw > 360) else self.yaw_init_+yaw)
         #local
         if is_traj_local_init_:
             self.traj_local_.append(pos)
@@ -300,9 +300,9 @@ class CoreControllerNode:
 
     def publishloopCallback(self, event):
         if self.is_traj_local_init_:
-            self.uav_target_pose_global_pub_.publish(self.uav_target_pose_global_);
-            self.uav_target_pose_local_pub_.publish(self.uav_target_pose_local_);
-            self.gazeboposePub_.publish(self.current_pose_);
+            self.uav_target_pose_global_pub_.publish(self.uav_target_pose_global_)
+            self.uav_target_pose_local_pub_.publish(self.uav_target_pose_local_)
+            self.gazeboposePub_.publish(self.current_pose_)
 
 
     #决策策略可以在此函数中实现
@@ -311,9 +311,9 @@ class CoreControllerNode:
         if self.flight_state_ == self.FlightState.FLYING and self.targetDist() < self.min_dist_ \
                    and abs(self.targetYawDiff()) < self.min_yaw_diff_: 
             if len(self.traj_local_) == 0:  #已经到达最终路径点，准备降落
-                self.flight_state_ = self.FlightState.READY_TO_LAND;
+                self.flight_state_ = self.FlightState.READY_TO_LAND
             else: #从队列中取出下一个路径位姿
-                self.popUAVTargetPose();
+                self.popUAVTargetPose()
 
 
 if __name__ == '__main__':
