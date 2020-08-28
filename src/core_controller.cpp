@@ -17,6 +17,8 @@ CoreControllerNode::CoreControllerNode()
 
     is_traj_local_init_ = false;
     target_state_ = 0;
+    queue_msize_ = 6;
+    max_dist_in_queue_ = 0.15;
     min_dist_ = 0.3;
     min_yaw_diff_ = 5;
     target_dist_threshold_ = 1;
@@ -114,6 +116,24 @@ bool CoreControllerNode::isAlreadyDetected(Eigen::Vector3d pos)
             return true;
     }
     return false;
+}
+
+bool CoreControllerNode::isReallyDetected()
+{
+    if(location_queue_.size() < queue_msize_)
+        return false;
+    Eigen::Vector3d queue_center(0,0,0);
+    for(auto iter = location_queue_.begin(); iter != location_queue_.end(); iter++)
+    {
+        queue_center = queue_center + *iter;
+    }
+    queue_center = queue_center / queue_msize_;
+    for(auto iter = location_queue_.begin(); iter != location_queue_.end(); iter++)
+    {
+        if((queue_center - *iter).norm() > max_dist_in_queue_)
+            return false;
+    }
+    return true;
 }
 
 void CoreControllerNode::popUAVTargetPose()
@@ -255,11 +275,29 @@ void CoreControllerNode::targetposeCallback(const uav_sim::PointWithState::Const
     {
         Eigen::Vector3d p_ct(msg->position.x, msg->position.y, msg->position.z), p_wt;
         p_wt = R_wu_*(R_uc_*p_ct+t_uc_)+t_wu_;
-        // p_wt = R_wu_*p_ct+t_wu_;
-        if(!this->isAlreadyDetected(p_wt))
+        if(location_queue_.size() >= queue_msize_)
         {
-            already_detected_target_.push_back(p_wt);
-            ROS_INFO("Target detected at %lf, %lf, %lf", p_wt[0], p_wt[1], p_wt[2]);
+            location_queue_.pop_front();
+        }
+        location_queue_.push_back(p_wt);
+    }
+    else
+    {
+        location_queue_.clear();
+    }
+
+    if(this->isReallyDetected())
+    {
+        Eigen::Vector3d queue_center(0,0,0);
+        for(auto iter = location_queue_.begin(); iter != location_queue_.end(); iter++)
+        {
+            queue_center = queue_center + *iter;
+        }
+        queue_center = queue_center / queue_msize_;
+        if(!this->isAlreadyDetected(queue_center))
+        {
+            already_detected_target_.push_back(queue_center);
+            ROS_INFO("Target detected at %lf, %lf, %lf", queue_center[0], queue_center[1], queue_center[2]);
         }
     }
 }

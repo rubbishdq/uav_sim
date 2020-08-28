@@ -25,6 +25,7 @@ public:
     double targetDist();
     double targetYawDiff(); // in degree ranged from -180 to 180
     bool isAlreadyDetected(Eigen::Vector3d pos);
+    bool isReallyDetected();
 
     void popUAVTargetPose(); // 从无人机路径位姿队列头部取出一个点作为下一目标点，更新uav_target_pose_global_和uav_target_pose_local_
     void globalTrajPushFront(Eigen::Vector3d pos, double yaw);
@@ -90,6 +91,9 @@ private:
     deque<double> yaw_global_, yaw_local_;  // 角度制
 
     // 目标检测相关变量
+    int queue_msize_;
+    deque<Eigen::Vector3d> location_queue_;
+    double max_dist_in_queue_;
     int target_state_; // 目标状态（1=侦测到，0=未侦测到）
     double min_dist_;  // 在无人机与当前目标点（uav_target_pose_）距离小于min_dist_且yaw差距小于min_yaw_diff_时，当前飞行目标点改为路径队列中的下一个点
     double min_yaw_diff_;

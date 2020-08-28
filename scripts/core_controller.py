@@ -50,6 +50,9 @@ class CoreControllerNode:
         self.current_pose_.pose.orientation.w = 1
 
         #目标检测相关变量
+        self.queue_msize_ = 6  #location_queue_的最大大小
+        self.location_queue_ = []
+        self.max_dist_in_queue_ = 0.15  #真正检测到目标时，location_queue_中任一点距离队列中所有点重心的距离不得超过该阈值
         self.already_detected_target_ = []  #已侦测到的目标坐标
         self.target_state_ = 0  #目标状态（1=侦测到，0=未侦测到）
         self.min_dist_ = 0.3  #在无人机与当前目标点（uav_target_pose_）距离小于min_dist_且yaw差距小于min_yaw_diff_时，当前飞行目标点改为路径队列中的下一个点
@@ -151,6 +154,17 @@ class CoreControllerNode:
             if np.linalg.norm(pos - target) < self.target_dist_threshold_:
                 return True
         return False
+
+
+    #对于某个目标，需要连续检测到它若干次，且每次定位位置较为接近，才认为是真正检测到了该目标
+    def isReallyDetected(self):
+        if len(self.location_queue_) < self.queue_msize_:
+            return False
+        queue_center = sum(self.location_queue_)/len(self.location_queue_)
+        for pt in self.location_queue_:
+            if np.linalg.norm(pt-queue_center) > self.max_dist_in_queue_:
+                return False
+        return True
 
 
     #从无人机路径位姿队列头部取出一个点作为下一目标点，更新uav_target_pose_global_和uav_target_pose_local_
@@ -260,12 +274,20 @@ class CoreControllerNode:
     def targetposeCallback(self, msg):
         self.target_state_ = msg.state
         if self.target_state_:
-            p_ct = np.array([msg.position.x, msg.position.y, msg.position.z])
+            p_ct = np.array([msg.position.x, msg.position.y, msg.position.z], dtype = 'float')
             p_ut = np.matmul(self.R_uc_.as_dcm(), p_ct) + self.t_uc_
             p_wt = np.matmul(self.R_wu_.as_dcm(), p_ut) + self.t_wu_
-            if not self.isAlreadyDetected(p_wt):
-                self.already_detected_target_.append(p_wt)
-                log_str = 'Target detected at %f, %f, %f' % (p_wt[0], p_wt[1], p_wt[2])
+            if len(self.location_queue_) >= self.queue_msize_:
+                del self.location_queue_[0]
+            self.location_queue_.append(p_wt)
+        else:
+            self.location_queue_ = []
+
+        if self.isReallyDetected():
+            queue_center = sum(self.location_queue_) / len(self.location_queue_)
+            if not self.isAlreadyDetected(queue_center):
+                self.already_detected_target_.append(queue_center)
+                log_str = 'Target detected at %f, %f, %f' % (queue_center[0], queue_center[1], queue_center[2])
                 rospy.loginfo(log_str)
 
 

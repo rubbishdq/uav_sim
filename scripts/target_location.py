@@ -25,10 +25,6 @@ class TargetLocationNode:
         #以下变量仅用于本场景中的目标（红色小球）识别与定位
         self.color_range_ = [(0,43,36), (6, 255, 255)]
         
-        self.location_queue_ = []
-        self.queue_msize = 4  #location_queue_的最大大小
-        self.max_dist_in_queue_ = 0.2  #真正检测到目标时，location_queue_中任一点距离队列中所有点重心的距离不得超过该阈值
-
         self.initFromYaml()
 
         try:
@@ -102,19 +98,15 @@ class TargetLocationNode:
                 Z = math.sqrt((self.f_*self.r_/rad)**2 + self.r_**2)
                 X = (centerX-width/2)*Z/self.f_
                 Y = (centerY-height/2)*Z/self.f_
-                if len(self.location_queue_) >= self.queue_msize:
-                    del self.location_queue_[0]
-                self.location_queue_.append(np.array([X,Y,Z], dtype = 'float'))
             else:
-                self.location_queue_ = []
+                pass
 
             location = PointWithState()
-            if self.isReallyDetected():
-                queue_center = sum(self.location_queue_)/len(self.location_queue_)
+            if target == 'Red':
                 location.state = 1
-                location.position.x = queue_center[2] #针孔成像使用的坐标系与PX4中的坐标系需要转换
-                location.position.y = -queue_center[0]
-                location.position.z = -queue_center[1]
+                location.position.x = Z #针孔成像使用的坐标系与PX4中的坐标系需要转换
+                location.position.y = -X
+                location.position.z = -Y
             else:
                 location.state = 0
                 location.position.x = 0
@@ -122,17 +114,6 @@ class TargetLocationNode:
                 location.position.z = 0
             self.location_pub_.publish(location)
             self.image_result_pub_.publish(self.bridge_.cv2_to_imgmsg(orgFrame_copy))
-
-
-    #对于某个目标，需要连续检测到它若干次，且每次定位位置较为接近，才认为是真正检测到了该目标
-    def isReallyDetected(self):
-        if len(self.location_queue_) < self.queue_msize:
-            return False
-        queue_center = sum(self.location_queue_)/len(self.location_queue_)
-        for pt in self.location_queue_:
-            if np.linalg.norm(pt-queue_center) > self.max_dist_in_queue_:
-                return False
-        return True
 
 
 if __name__ == '__main__':
